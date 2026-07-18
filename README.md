@@ -1,6 +1,92 @@
-# Pivot
+# Pivot — your thinking partner
 
-A calm, conversational AI decision-coaching web app.
+Pivot is a calm, conversational decision-coaching app. It walks someone through
+a hard choice one question at a time, has them score two options separately
+("blind" scoring, to keep answers honest), and reflects back what the scores
+reveal. Decisions are saved to the signed-in user's account.
 
-See the `claude/pivot-web-app-ehks18` branch / its pull request for the
-initial application build.
+Stack: **Next.js (App Router)** + **Supabase** (Postgres + auth) + a
+server-side proxy to the **Anthropic API** for generating personalised
+decision factors.
+
+## 1. Set up Supabase
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In the SQL editor, run the contents of [`supabase/schema.sql`](./supabase/schema.sql).
+   This creates the `decisions` table with row-level security, so each user
+   can only see and manage their own saved decisions.
+3. In **Project Settings → API**, copy the **Project URL** and **anon public**
+   key.
+4. In **Authentication → Providers**, email/password sign-up is enabled by
+   default. If you'd rather skip email confirmation while testing, turn off
+   "Confirm email" under **Authentication → Sign In / Providers → Email**.
+
+## 2. Get an Anthropic API key
+
+Create a key at [console.anthropic.com](https://console.anthropic.com). This
+key is read server-side only (`ANTHROPIC_API_KEY`) inside
+`src/app/api/suggestions/route.ts` — it is never sent to the browser. If the
+key is missing, Pivot silently falls back to a generic set of decision
+factors instead of failing.
+
+## 3. Configure environment variables
+
+Copy `.env.example` to `.env.local` and fill in the three values:
+
+```bash
+cp .env.example .env.local
+```
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+ANTHROPIC_API_KEY=...
+```
+
+## 4. Run it locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Sign up, then start a
+decision from the dashboard.
+
+## 5. Deploy to Vercel (to get a real URL)
+
+1. Push this repository to GitHub (already done if you're reading this from
+   the repo).
+2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
+3. Vercel auto-detects Next.js — no build config changes needed.
+4. Add the same three environment variables from step 3 under
+   **Project Settings → Environment Variables**.
+5. Deploy. Vercel gives you a `*.vercel.app` URL immediately; you can attach a
+   custom domain afterwards under **Project Settings → Domains**.
+
+## Project structure
+
+```
+src/
+  app/
+    page.tsx                landing page
+    login/, signup/         auth pages (email + password via Supabase)
+    dashboard/               list of saved decisions
+    decision/new/            the conversational decision flow
+    decision/[id]/           read-only view of a saved decision
+    api/suggestions/         server-side Anthropic proxy
+    actions/                 server actions (auth, save/delete decisions)
+  components/decision/       the step-by-step conversation UI
+  lib/supabase/              browser + server Supabase clients, session refresh
+  lib/scoring.ts             weighted-score + insight calculation
+proxy.ts                     session refresh + route protection (Next.js 16
+                              renamed "middleware" to "proxy")
+supabase/schema.sql          decisions table + row-level security policies
+```
+
+## Notes on Next.js 16
+
+This project was scaffolded with Next.js 16, which renamed `middleware.ts` to
+`proxy.ts` (same purpose — it refreshes the Supabase session cookie and
+protects `/dashboard` and `/decision` routes). If you're used to older
+Next.js docs, that's the one naming change worth knowing about.
