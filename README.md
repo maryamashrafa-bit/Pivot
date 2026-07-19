@@ -20,6 +20,14 @@ decision factors.
 4. In **Authentication → Providers**, email/password sign-up is enabled by
    default. If you'd rather skip email confirmation while testing, turn off
    "Confirm email" under **Authentication → Sign In / Providers → Email**.
+5. **Required for email confirmation links to work**: in
+   **Authentication → URL Configuration**, add your deployed URL to
+   **Redirect URLs** — e.g. `https://pivot-khaki.vercel.app/**`. Supabase
+   only allows redirecting confirmation links to URLs on this allow-list; if
+   your live URL isn't listed, it silently falls back to the default
+   `Site URL` (usually `http://localhost:3000`), which is why confirming an
+   account from the live site can land on a blank/unreachable page. Add
+   `http://localhost:3000/**` too if you also test locally.
 
 ## 2. Get an Anthropic API key
 
@@ -75,6 +83,7 @@ src/
     decision/new/            the conversational decision flow
     decision/[id]/           read-only view of a saved decision
     api/suggestions/         server-side Anthropic proxy
+    auth/confirm/            handles email confirmation links, redirects into the app
     actions/                 server actions (auth, save/delete decisions)
   components/decision/       the step-by-step conversation UI
   lib/supabase/              browser + server Supabase clients, session refresh
