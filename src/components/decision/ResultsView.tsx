@@ -23,7 +23,7 @@ export function ResultsView({
     <div>
       <div
         style={{
-          fontSize: 17,
+          fontSize: 19,
           fontWeight: 600,
           color: r.diff < 0.3 ? '#111' : '#2D7D52',
         }}
@@ -46,7 +46,7 @@ export function ResultsView({
 
       <div
         style={{
-          fontSize: 12,
+          fontSize: 13,
           color: '#9ca3af',
           fontWeight: 500,
           letterSpacing: '.4px',

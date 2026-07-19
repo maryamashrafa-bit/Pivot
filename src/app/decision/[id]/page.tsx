@@ -38,17 +38,17 @@ export default async function DecisionDetailPage({
       <div className="bubble-wrap">
         <div className="bubble pivot-bubble">
           <div className="binner">
-            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 4 }}>{decision.title}</div>
-            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>
+            <div style={{ fontSize: 19, fontWeight: 600, marginBottom: 4 }}>{decision.title}</div>
+            <div style={{ fontSize: 15, color: '#6b7280', marginBottom: 4 }}>
               {decision.option_a} vs {decision.option_b}
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>
               Talked through on {createdAt}
             </div>
             {decision.context && (
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 15,
                   color: '#6b7280',
                   background: '#fff',
                   border: '1px solid #e5e7eb',
