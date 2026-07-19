@@ -20,6 +20,13 @@ export function ScoreStep({
     Object.fromEntries(criteria.map((c) => [c, 5]))
   );
 
+  function starClass(value: number, current: number) {
+    if (value > current) return 'star off';
+    if (value <= 3) return 'star on-red';
+    if (value <= 7) return 'star on-amber';
+    return 'star on-green';
+  }
+
   return (
     <div>
       <div className="progress-bar">
@@ -36,7 +43,7 @@ export function ScoreStep({
               {Array.from({ length: 10 }, (_, i) => i + 1).map((v) => (
                 <div
                   key={v}
-                  className={'star ' + (v <= scores[c] ? 'on' : 'off')}
+                  className={starClass(v, scores[c])}
                   onClick={() => setScores((s) => ({ ...s, [c]: v }))}
                 />
               ))}

@@ -67,10 +67,12 @@ export function FinalActions(props: Props) {
         </Link>
       </div>
       {status === 'saving' && (
-        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 8 }}>Saving to your account…</div>
+        <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 8 }}>
+          Saving to your account…
+        </div>
       )}
       {status === 'saved' && savedId && (
-        <div style={{ fontSize: 12, color: '#2D7D52', marginTop: 8 }}>
+        <div style={{ fontSize: 15, color: '#2D7D52', marginTop: 8 }}>
           Saved ✓ —{' '}
           <Link href={`/decision/${savedId}`} style={{ color: '#2D7D52', fontWeight: 500 }}>
             view it later
@@ -78,7 +80,7 @@ export function FinalActions(props: Props) {
         </div>
       )}
       {status === 'error' && (
-        <div style={{ fontSize: 12, color: '#a83232', marginTop: 8 }}>{errorMsg}</div>
+        <div style={{ fontSize: 15, color: '#a83232', marginTop: 8 }}>{errorMsg}</div>
       )}
     </div>
   );

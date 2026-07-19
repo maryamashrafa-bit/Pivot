@@ -62,7 +62,7 @@ export function ChipsStep({
         }}
       />
       {warning && (
-        <div style={{ fontSize: 12, color: '#a83232', marginTop: 8 }}>{warning}</div>
+        <div style={{ fontSize: 15, color: "#a83232", marginTop: 8 }}>{warning}</div>
       )}
       <button className="done-chip" onClick={done}>
         Done — these are my factors
