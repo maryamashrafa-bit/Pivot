@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 // them back in the app instead of Supabase's default (blank) redirect.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const next = searchParams.get('next') ?? '/decision/new';
+  const next = searchParams.get('next') ?? '/dashboard';
   const code = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;

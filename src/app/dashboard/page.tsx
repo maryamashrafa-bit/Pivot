@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
 import DeleteDecisionButton from '@/components/DeleteDecisionButton';
+import { PendingDecisionSync } from '@/components/decision/PendingDecisionSync';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/actions/auth';
 import type { SavedDecision } from '@/lib/types';
@@ -38,6 +39,8 @@ export default async function DashboardPage() {
           </form>
         </div>
       </div>
+
+      <PendingDecisionSync />
 
       <div className="dash-title">Your decisions</div>
       <div className="dash-sub">Every decision you talk through with Pivot is saved here.</div>

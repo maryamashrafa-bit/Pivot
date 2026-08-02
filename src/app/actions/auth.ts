@@ -56,7 +56,7 @@ export async function signup(
   const { data, error } = await supabase.auth.signUp({
     ...parsed.data,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/confirm?next=/decision/new`,
+      emailRedirectTo: `${siteUrl}/auth/confirm?next=/dashboard`,
     },
   });
 

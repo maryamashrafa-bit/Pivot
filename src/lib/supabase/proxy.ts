@@ -1,8 +1,16 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/decision'];
 const AUTH_PAGES = ['/login', '/signup'];
+
+// /decision/new is intentionally public — anyone can start and complete a
+// decision without an account. Only saved-decision detail pages and the
+// dashboard require a signed-in user.
+function isProtectedPath(path: string) {
+  if (path.startsWith('/dashboard')) return true;
+  if (path.startsWith('/decision/') && !path.startsWith('/decision/new')) return true;
+  return false;
+}
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -33,7 +41,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p));
+  const isProtected = isProtectedPath(path);
   const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
 
   if (isProtected && !user) {

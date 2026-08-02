@@ -36,7 +36,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export default function DecisionChat() {
+export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputArea, setInputArea] = useState<ReactNode>(null);
   const idRef = useRef(0);
@@ -303,6 +303,7 @@ export default function DecisionChat() {
         scoreA={result.scoreA}
         scoreB={result.scoreB}
         winner={result.winner}
+        isAuthenticated={isAuthenticated}
         onRestart={restart}
       />
     );
