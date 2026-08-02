@@ -3,7 +3,13 @@
 Pivot is a calm, conversational decision-coaching app. It walks someone through
 a hard choice one question at a time, has them score two options separately
 ("blind" scoring, to keep answers honest), and reflects back what the scores
-reveal. Decisions are saved to the signed-in user's account.
+reveal.
+
+Anyone can start and finish a decision without an account — sign-up is only
+offered at the results screen, as a way to save that decision and come back
+to it later, not a gate to get in. If someone signs up (or logs in) right
+after finishing as a guest, that decision is saved automatically rather than
+lost.
 
 Stack: **Next.js (App Router)** + **Supabase** (Postgres + auth) + a
 server-side proxy to the **Anthropic API** for generating personalised
@@ -58,8 +64,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Sign up, then start a
-decision from the dashboard.
+Open [http://localhost:3000](http://localhost:3000) and start a decision right
+away — no account needed. Sign up from the results screen if you want to
+save it.
 
 ## 5. Deploy to Vercel (to get a real URL)
 
@@ -88,8 +95,12 @@ src/
   components/decision/       the step-by-step conversation UI
   lib/supabase/              browser + server Supabase clients, session refresh
   lib/scoring.ts             weighted-score + insight calculation
-proxy.ts                     session refresh + route protection (Next.js 16
-                              renamed "middleware" to "proxy")
+  lib/pending-decision.ts    stashes a guest's finished decision in
+                              localStorage so signing up afterward saves it
+proxy.ts                     session refresh + route protection — only
+                              /dashboard and /decision/[id] require a
+                              signed-in user; /decision/new is public
+                              (Next.js 16 renamed "middleware" to "proxy")
 supabase/schema.sql          decisions table + row-level security policies
 ```
 

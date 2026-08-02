@@ -30,6 +30,20 @@ export interface SavedDecision {
   created_at: string;
 }
 
+export interface DecisionResultPayload {
+  title: string;
+  optA: string;
+  optB: string;
+  context: string;
+  crit: string[];
+  wts: WeightMap;
+  scA: ScoreMap;
+  scB: ScoreMap;
+  scoreA: number;
+  scoreB: number;
+  winner: string;
+}
+
 export function emptyDecisionState(): DecisionState {
   return {
     title: '',

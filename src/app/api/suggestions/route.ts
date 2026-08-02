@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 
 const FALLBACK_SUGGESTIONS = [
   'Daily time commitment',
@@ -37,21 +36,15 @@ function buildPrompt(title: string, optA: string, optB: string, context: string)
   ].join('\n');
 }
 
+// No auth required — this route doesn't touch any user's data, it just
+// proxies to Anthropic so decisions can be started without an account.
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const body = await request.json().catch(() => null);
-  const title = typeof body?.title === 'string' ? body.title : '';
-  const optA = typeof body?.optA === 'string' ? body.optA : '';
-  const optB = typeof body?.optB === 'string' ? body.optB : '';
-  const context = typeof body?.context === 'string' ? body.context : '';
+  const clip = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '');
+  const title = clip(body?.title, 300);
+  const optA = clip(body?.optA, 300);
+  const optB = clip(body?.optB, 300);
+  const context = clip(body?.context, 2000);
 
   if (!title || !optA || !optB) {
     return NextResponse.json({ error: 'Missing decision details' }, { status: 400 });

@@ -2,23 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { ScoreMap, WeightMap } from '@/lib/types';
+import type { DecisionResultPayload } from '@/lib/types';
 
-interface SaveDecisionInput {
-  title: string;
-  optA: string;
-  optB: string;
-  context: string;
-  crit: string[];
-  wts: WeightMap;
-  scA: ScoreMap;
-  scB: ScoreMap;
-  scoreA: number;
-  scoreB: number;
-  winner: string;
-}
-
-export async function saveDecision(input: SaveDecisionInput) {
+export async function saveDecision(input: DecisionResultPayload) {
   const supabase = await createClient();
   const {
     data: { user },
