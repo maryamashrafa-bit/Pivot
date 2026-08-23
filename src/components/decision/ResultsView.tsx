@@ -107,6 +107,21 @@ export function ResultsView({
           </div>
         );
       })}
+
+      <div className="coaching-note">
+        <p className="lead">The numbers can inform — but they can&apos;t decide.</p>
+        <p>
+          A decision matrix is a thinking tool, not a verdict. It helps you see what matters to
+          you and how your options compare — but it can&apos;t feel what you feel.
+        </p>
+        <p>
+          If something still pulls at you that the scores don&apos;t capture — a gut instinct, a
+          fear, an excitement you haven&apos;t fully named — that deserves attention too.
+          Sometimes the most important factor in a big decision is the one that&apos;s hardest to
+          put a number on.
+        </p>
+        <p>Sit with what this process has revealed. The clarity you&apos;re looking for might already be there.</p>
+      </div>
     </div>
   );
 }

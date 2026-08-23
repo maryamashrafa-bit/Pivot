@@ -21,5 +21,11 @@ export async function GET(request: Request) {
     if (!error) return NextResponse.redirect(`${origin}${next}`);
   }
 
-  return NextResponse.redirect(`${origin}/login?error=confirmation_failed`);
+  // No usable code/token_hash in the query string — Supabase may instead
+  // have put the session in the URL's hash fragment, which this server
+  // handler can never see (fragments aren't sent over HTTP). Hand off to a
+  // client page that can actually read it before giving up.
+  return NextResponse.redirect(
+    `${origin}/auth/confirm/finish?next=${encodeURIComponent(next)}`
+  );
 }

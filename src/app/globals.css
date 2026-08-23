@@ -166,6 +166,11 @@ textarea.single-input{resize:none;height:100px;line-height:1.6;}
 .bar{height:7px;border-radius:3px;min-width:2px;}
 .ba{background:var(--green);}.bb{background:var(--amber);}
 
+.coaching-note{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #e5e7eb;}
+.coaching-note p{font-size:var(--fs-sm);color:var(--text-secondary);line-height:1.7;margin-bottom:.9rem;}
+.coaching-note p:last-child{margin-bottom:0;}
+.coaching-note p.lead{font-size:var(--fs-md);color:#1a4a2e;font-weight:600;}
+
 .restart-btn{background:none;border:1px solid #d1d5db;border-radius:10px;padding:11px 22px;font-size:var(--fs-xs);color:var(--text-secondary);cursor:pointer;margin-top:1.25rem;font-family:inherit;min-height:44px;}
 .restart-btn:hover{background:#f3f4f6;}
 
