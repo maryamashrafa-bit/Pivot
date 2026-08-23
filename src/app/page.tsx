@@ -8,7 +8,7 @@ export default async function LandingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const primaryHref = user ? '/dashboard' : '/signup';
+  const primaryHref = user ? '/dashboard' : '/decision/new';
   const primaryLabel = user ? 'Go to your decisions' : 'Start a decision';
 
   return (
@@ -59,8 +59,8 @@ export default async function LandingPage() {
         <div className="feature">
           <div className="feature-dot" />
           <div className="feature-text">
-            <strong>Save and revisit</strong>
-            <span>Every decision is saved to your account so you can look back later.</span>
+            <strong>No account needed to start</strong>
+            <span>Talk through the whole decision first — save it with a free account only if you want to.</span>
           </div>
         </div>
       </div>
