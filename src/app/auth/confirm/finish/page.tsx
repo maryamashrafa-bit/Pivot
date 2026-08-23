@@ -48,21 +48,28 @@ function FinishConfirmInner() {
   }, [next, router]);
 
   if (failed) {
+    // This page couldn't complete the automatic sign-in itself, but that's
+    // almost always because the link had already been used by the time it
+    // got here — most commonly an email provider's link-safety scanner
+    // opening it first, which also completes the confirmation. So rather
+    // than call this an error, we point straight at the one action that
+    // actually resolves it either way: signing in.
     return (
       <div className="page">
         <Logo href="/" />
         <div className="auth-card">
-          <div className="auth-title">That confirmation link didn&apos;t work</div>
-          <div className="auth-error" style={{ marginTop: 12 }}>
-            It may have expired, or already been used. Try signing in, or sign up again.
+          <div className="auth-title">Your email is confirmed</div>
+          <div className="auth-notice" style={{ marginTop: 12 }}>
+            This link couldn&apos;t finish signing you in automatically — that usually just means
+            it was already used, so your account is already confirmed. Sign in to continue.
           </div>
           <div className="send-row" style={{ marginTop: 16 }}>
             <Link href="/login" className="btn-primary">
               Sign in
             </Link>
-            <Link href="/signup" className="btn-secondary">
-              Sign up
-            </Link>
+          </div>
+          <div className="auth-switch">
+            Trouble signing in? <Link href="/signup">Sign up again</Link>
           </div>
         </div>
       </div>
