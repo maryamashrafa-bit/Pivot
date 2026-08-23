@@ -60,7 +60,7 @@ export default async function LandingPage() {
           <div className="feature-dot" />
           <div className="feature-text">
             <strong>No account needed to start</strong>
-            <span>Talk through the whole decision first — save it with a free account only if you want to.</span>
+            <span>Explore the full decision flow freely. Create a free account before you finish to save your results.</span>
           </div>
         </div>
       </div>
