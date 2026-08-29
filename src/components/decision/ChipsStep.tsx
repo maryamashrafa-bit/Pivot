@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 
+const SOFT_TARGET = 6;
+const MIN_TO_CONTINUE = 5;
+
 export function ChipsStep({
   suggestions,
   onSubmit,
@@ -12,7 +15,6 @@ export function ChipsStep({
   const [allChips, setAllChips] = useState(suggestions);
   const [selected, setSelected] = useState<string[]>([]);
   const [custom, setCustom] = useState('');
-  const [warning, setWarning] = useState('');
 
   function toggle(val: string) {
     setSelected((s) => (s.includes(val) ? s.filter((x) => x !== val) : [...s, val]));
@@ -26,16 +28,17 @@ export function ChipsStep({
     setSelected((s) => (s.includes(v) ? s : [...s, v]));
   }
 
-  function done() {
-    if (selected.length < 2) {
-      setWarning('Please select at least 2 factors to continue.');
-      return;
-    }
-    onSubmit(selected);
-  }
+  const count = selected.length;
+  const ready = count >= SOFT_TARGET;
+  const canContinue = count >= MIN_TO_CONTINUE;
 
   return (
     <div>
+      <div className="chips-intro">
+        Select at least 6 factors that resonate with you — the more you choose, the clearer your
+        picture will be. You can remove any that don&apos;t feel right and add your own.
+      </div>
+
       <div className="chips">
         {allChips.map((s) => (
           <div
@@ -61,10 +64,14 @@ export function ChipsStep({
           }
         }}
       />
-      {warning && (
-        <div style={{ fontSize: 15, color: "#a83232", marginTop: 8 }}>{warning}</div>
-      )}
-      <button className="done-chip" onClick={done}>
+
+      <div className={'chips-counter' + (ready ? ' ready' : '')}>
+        {ready
+          ? `${count} selected ✅`
+          : `${count} selected — try to pick at least ${SOFT_TARGET}`}
+      </div>
+
+      <button className="done-chip" onClick={() => onSubmit(selected)} disabled={!canContinue}>
         Done — these are my factors
       </button>
     </div>
