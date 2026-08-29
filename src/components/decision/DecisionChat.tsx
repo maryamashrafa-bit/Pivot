@@ -5,10 +5,13 @@ import { TextInputStep, ContextInputStep } from '@/components/decision/TextInput
 import { ChipsStep } from '@/components/decision/ChipsStep';
 import { WeightsStep } from '@/components/decision/WeightsStep';
 import { ScoreStep } from '@/components/decision/ScoreStep';
+import { SummaryStep } from '@/components/decision/SummaryStep';
 import { ResultsView } from '@/components/decision/ResultsView';
 import { FinalActions } from '@/components/decision/FinalActions';
+import { StepIndicator } from '@/components/decision/StepIndicator';
 import { computeResults } from '@/lib/scoring';
-import { emptyDecisionState, type DecisionState } from '@/lib/types';
+import { fallbackSuggestions } from '@/lib/fallback-suggestions';
+import { emptyDecisionState, type DecisionState, type ScoreMap, type WeightMap } from '@/lib/types';
 
 interface ChatMessage {
   id: number;
@@ -17,21 +20,6 @@ interface ChatMessage {
   typing: boolean;
 }
 
-const FALLBACK_SUGGESTIONS = [
-  'Daily time commitment',
-  'Financial impact',
-  'Career progression',
-  'Job security',
-  'Family time impact',
-  'Commute demands',
-  'Side project time',
-  'Work flexibility',
-  'Team environment',
-  'Learning opportunities',
-  'Pension & benefits',
-  'Entrepreneurial freedom',
-];
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -39,6 +27,7 @@ function sleep(ms: number) {
 export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputArea, setInputArea] = useState<ReactNode>(null);
+  const [step, setStep] = useState(1);
   const idRef = useRef(0);
   const started = useRef(false);
   const S = useRef<DecisionState>(emptyDecisionState());
@@ -105,11 +94,106 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
       }
       throw new Error('bad response');
     } catch {
-      return FALLBACK_SUGGESTIONS;
+      return fallbackSuggestions(title, context);
     }
   }
 
+  // Collects weights + blind scores for both options. Called once for the
+  // normal flow, and again (with shorter, less repetitive copy) whenever
+  // someone chooses "Go back and adjust" from the summary review step.
+  async function collectPrioritiesAndScores(
+    optA: string,
+    optB: string,
+    crit: string[],
+    isRevision: boolean
+  ) {
+    setStep(4);
+    if (!isRevision) {
+      await addPivot(
+        <>
+          Good choices. Now — thinking about your life <em>right now</em>, how important is each
+          one to you? Just move the slider honestly. No right answers.
+        </>,
+        400
+      );
+      await sleep(1200);
+    } else {
+      await addPivot('Sure — let’s revisit how important each factor feels.', 300);
+      await sleep(600);
+    }
+    const wts = await waitForInput<WeightMap>((resolve) => (
+      <WeightsStep criteria={crit} onSubmit={resolve} />
+    ));
+    const top = [...crit].sort((a, b) => (wts[b] ?? 5) - (wts[a] ?? 5)).slice(0, 3);
+    addUser(`Most important to me right now: ${top.join(', ')}`);
+
+    setStep(5);
+    if (!isRevision) {
+      await addPivot(
+        <>
+          I can see what matters most to you right now — especially <em>{top.join(', ')}</em>.
+        </>,
+        400
+      );
+      await addPivot(
+        'Now we’ll score each option separately — one at a time, so you’re not influenced by seeing both at once. This keeps your answers honest.',
+        1300
+      );
+      await addPivot(
+        <>
+          Starting with <em>&quot;{optA}&quot;</em>. For each factor, how well does this option
+          deliver? 1 is poor, 10 is excellent.
+        </>,
+        2200
+      );
+      await sleep(900);
+    } else {
+      await addPivot(
+        <>
+          Let&apos;s re-score <em>&quot;{optA}&quot;</em> with fresh eyes.
+        </>,
+        400
+      );
+      await sleep(700);
+    }
+    const scA = await waitForInput<ScoreMap>((resolve) => (
+      <ScoreStep
+        side="a"
+        optLabel={optA}
+        criteria={crit}
+        doneLabel={`Done — now score "${optB}"`}
+        onSubmit={resolve}
+      />
+    ));
+    addUser(`"${optA}" scored`);
+
+    if (!isRevision) {
+      await addPivot(
+        <>
+          Good. Now the same for <em>&quot;{optB}&quot;</em> — fresh eyes, same questions.
+        </>,
+        400
+      );
+      await sleep(800);
+    } else {
+      await addPivot(
+        <>
+          And <em>&quot;{optB}&quot;</em>.
+        </>,
+        400
+      );
+      await sleep(500);
+    }
+    const scB = await waitForInput<ScoreMap>((resolve) => (
+      <ScoreStep side="b" optLabel={optB} criteria={crit} doneLabel="Review my answers" onSubmit={resolve} />
+    ));
+    addUser(`"${optB}" scored`);
+
+    return { wts, scA, scB };
+  }
+
   async function run() {
+    setStep(1);
     // --- decision title ---
     await addPivot(
       <>
@@ -174,6 +258,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     addUser(optB);
 
     // --- context ---
+    setStep(2);
     await addPivot(
       <>
         &quot;<em>{optA}</em>&quot; vs &quot;<em>{optB}</em>&quot;. Before I suggest what to
@@ -195,6 +280,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     addUser(context || 'Keeping it private');
 
     // --- suggestions ---
+    setStep(3);
     await addPivot(
       context
         ? 'Thank you — that really helps me understand what matters for you specifically.'
@@ -218,66 +304,44 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     S.current.crit = crit;
     addUser(crit.join(', '));
 
-    // --- weights ---
-    await addPivot(
-      <>
-        Good choices. Now — thinking about your life <em>right now</em>, how important is each
-        one to you? Just move the slider honestly. No right answers.
-      </>,
-      400
-    );
-    await sleep(1200);
-    const wts = await waitForInput<Record<string, number>>((resolve) => (
-      <WeightsStep criteria={crit} onSubmit={resolve} />
-    ));
+    // --- priorities, blind scoring, and review (repeats if they go back to adjust) ---
+    let pass = 0;
+    let wts: WeightMap = {};
+    let scA: ScoreMap = {};
+    let scB: ScoreMap = {};
+
+    while (true) {
+      const result = await collectPrioritiesAndScores(optA, optB, crit, pass > 0);
+      wts = result.wts;
+      scA = result.scA;
+      scB = result.scB;
+      pass += 1;
+
+      setStep(6);
+      await addPivot(
+        "Here's an overview of your answers — take a moment to review before seeing your results. Does this feel right?",
+        500
+      );
+      await sleep(600);
+      const proceed = await waitForInput<boolean>((resolve) => (
+        <SummaryStep
+          optA={optA}
+          optB={optB}
+          crit={crit}
+          wts={wts}
+          scA={scA}
+          scB={scB}
+          onBack={() => resolve(false)}
+          onContinue={() => resolve(true)}
+        />
+      ));
+      if (proceed) break;
+      addUser('Let me adjust a few things');
+    }
+
     S.current.wts = wts;
-    const top = [...crit].sort((a, b) => (wts[b] ?? 5) - (wts[a] ?? 5)).slice(0, 3);
-    addUser(`Most important to me right now: ${top.join(', ')}`);
-
-    // --- blind scoring: option A ---
-    await addPivot(
-      <>
-        I can see what matters most to you right now — especially <em>{top.join(', ')}</em>.
-      </>,
-      400
-    );
-    await addPivot(
-      'Now we’ll score each option separately — one at a time, so you’re not influenced by seeing both at once. This keeps your answers honest.',
-      1300
-    );
-    await addPivot(
-      <>
-        Starting with <em>&quot;{optA}&quot;</em>. For each factor, how well does this option
-        deliver? 1 is poor, 10 is excellent.
-      </>,
-      2200
-    );
-    await sleep(900);
-    const scA = await waitForInput<Record<string, number>>((resolve) => (
-      <ScoreStep
-        side="a"
-        optLabel={optA}
-        criteria={crit}
-        doneLabel={`Done — now score "${optB}"`}
-        onSubmit={resolve}
-      />
-    ));
     S.current.scA = scA;
-    addUser(`"${optA}" scored`);
-
-    // --- blind scoring: option B ---
-    await addPivot(
-      <>
-        Good. Now the same for <em>&quot;{optB}&quot;</em> — fresh eyes, same questions.
-      </>,
-      400
-    );
-    await sleep(800);
-    const scB = await waitForInput<Record<string, number>>((resolve) => (
-      <ScoreStep side="b" optLabel={optB} criteria={crit} doneLabel="See my results" onSubmit={resolve} />
-    ));
     S.current.scB = scB;
-    addUser(`"${optB}" scored`);
 
     // --- results ---
     await addPivot('Both options scored. Let me put the full picture together for you now.', 400);
@@ -313,6 +377,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     S.current = emptyDecisionState();
     setMessages([]);
     setInputArea(null);
+    setStep(1);
     run();
   }
 
@@ -325,6 +390,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
 
   return (
     <>
+      <StepIndicator current={step} />
       <div className="bubble-wrap">
         {messages.map((m) => {
           if (m.role === 'loading') {
