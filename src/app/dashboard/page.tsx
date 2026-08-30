@@ -32,6 +32,9 @@ export default async function DashboardPage() {
         <Logo href="/dashboard" />
         <div className="topbar-actions">
           <span className="topbar-email">{user?.email}</span>
+          <Link href="/account" className="icon-btn">
+            Account
+          </Link>
           <form action={logout}>
             <button className="icon-btn" type="submit">
               Sign out

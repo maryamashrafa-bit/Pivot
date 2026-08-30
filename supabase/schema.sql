@@ -37,3 +37,25 @@ drop policy if exists "Users can delete their own decisions" on public.decisions
 create policy "Users can delete their own decisions"
   on public.decisions for delete
   using (auth.uid() = user_id);
+
+-- Lets a signed-in user permanently delete their own account and every
+-- decision tied to it, in one call, without needing the service_role key
+-- anywhere in the app. SECURITY DEFINER is required only to reach
+-- auth.users; every statement inside is still scoped to auth.uid(), so a
+-- user can only ever delete their own account this way. Deleting the
+-- decisions row explicitly is redundant with the ON DELETE CASCADE above
+-- but kept for clarity and as defense in depth.
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.decisions where user_id = auth.uid();
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public;
+grant execute on function public.delete_own_account() to authenticated;

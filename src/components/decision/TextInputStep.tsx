@@ -50,6 +50,10 @@ export function ContextInputStep({ onSubmit }: { onSubmit: (value: string) => vo
           onChange={(e) => setValue(e.target.value)}
         />
       </div>
+      <div className="context-privacy">
+        🔒 This is completely private. Only you can see what you share here. Your context is
+        never stored beyond your session if using as a guest.
+      </div>
       <div className="send-row" style={{ marginTop: 6 }}>
         <button className="skip-btn" onClick={() => onSubmit('')}>
           Skip — keep it private

@@ -79,6 +79,13 @@ export default async function DecisionDetailPage({
         </Link>
         <DeleteDecisionButton id={decision.id} redirectTo="/dashboard" />
       </div>
+
+      <div className="site-footer" style={{ marginTop: '2rem' }}>
+        <div className="footer-links">
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms of Use</Link>
+        </div>
+      </div>
     </div>
   );
 }

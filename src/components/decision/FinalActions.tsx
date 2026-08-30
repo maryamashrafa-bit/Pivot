@@ -104,10 +104,13 @@ export function FinalActions(props: Props) {
       )}
 
       {!isAuthenticated && (
+        <div className="guest-notice">
+          You used Pivot as a guest — your decision hasn&apos;t been saved and no personal data
+          has been stored. Want to save your results for next time? Create a free account.
+        </div>
+      )}
+      {!isAuthenticated && (
         <div className="signup-cta">
-          <p>
-            Want to save your results and come back to this decision? Create a free account.
-          </p>
           <div className="send-row">
             <Link href="/signup" className="btn-primary">
               Create a free account
@@ -118,6 +121,13 @@ export function FinalActions(props: Props) {
           </div>
         </div>
       )}
+
+      <div className="site-footer" style={{ marginTop: '2rem' }}>
+        <div className="footer-links">
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms of Use</Link>
+        </div>
+      </div>
     </div>
   );
 }

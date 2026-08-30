@@ -122,6 +122,11 @@ export function ResultsView({
         </p>
         <p>Sit with what this process has revealed. The clarity you&apos;re looking for might already be there.</p>
       </div>
+
+      <div className="ai-disclaimer">
+        Remember: Pivot is a thinking tool, not a decision maker. Trust your own judgement
+        alongside these insights.
+      </div>
     </div>
   );
 }

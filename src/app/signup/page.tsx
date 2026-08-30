@@ -43,6 +43,11 @@ export default function SignupPage() {
           </button>
         </form>
 
+        <div className="context-privacy" style={{ textAlign: 'center', marginTop: 14 }}>
+          By signing up you agree to our <Link href="/privacy">Privacy Policy</Link> and{' '}
+          <Link href="/terms">Terms of Use</Link>. Your decisions are private and never shared.
+        </div>
+
         <div className="auth-switch">
           Already have an account? <Link href="/login">Sign in</Link>
         </div>
