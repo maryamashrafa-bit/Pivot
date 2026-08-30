@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import SiteFooter from '@/components/SiteFooter';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function LandingPage() {
@@ -21,6 +22,10 @@ export default async function LandingPage() {
           Pivot walks you through a hard choice one gentle question at a time —
           no spreadsheets, no pressure. Score your options honestly, and see
           what your own answers reveal.
+        </p>
+        <p className="ai-disclaimer" style={{ marginTop: '-1rem', marginBottom: '1.75rem', borderTop: 'none', paddingTop: 0 }}>
+          Pivot is an AI-assisted decision coaching tool. Like all AI tools it can make mistakes
+          and should not replace professional advice for medical, legal or financial decisions.
         </p>
         <div className="hero-actions">
           <Link href={primaryHref} className="btn-primary">
@@ -64,6 +69,8 @@ export default async function LandingPage() {
           </div>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

@@ -34,6 +34,14 @@ decision factors.
    `Site URL` (usually `http://localhost:3000`), which is why confirming an
    account from the live site can land on a blank/unreachable page. Add
    `http://localhost:3000/**` too if you also test locally.
+6. **Required for account deletion to work**: `supabase/schema.sql` now also
+   defines a `delete_own_account()` function. If you already ran an earlier
+   version of this file, re-run it (or just the new function block at the
+   bottom) in the SQL editor — the "Delete my account and all data" button
+   in account settings depends on it existing. It's a `SECURITY DEFINER`
+   function scoped to `auth.uid()`, which is how a signed-in user can delete
+   their own `auth.users` row using only the anon key (no service-role key
+   is used anywhere in this app).
 
 ## 2. Get an Anthropic API key
 

@@ -8,6 +8,7 @@ const AUTH_PAGES = ['/login', '/signup'];
 // dashboard require a signed-in user.
 function isProtectedPath(path: string) {
   if (path.startsWith('/dashboard')) return true;
+  if (path.startsWith('/account')) return true;
   if (path.startsWith('/decision/') && !path.startsWith('/decision/new')) return true;
   return false;
 }

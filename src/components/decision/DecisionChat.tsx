@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { TextInputStep, ContextInputStep } from '@/components/decision/TextInputStep';
 import { ChipsStep } from '@/components/decision/ChipsStep';
 import { WeightsStep } from '@/components/decision/WeightsStep';
@@ -9,8 +9,12 @@ import { SummaryStep } from '@/components/decision/SummaryStep';
 import { ResultsView } from '@/components/decision/ResultsView';
 import { FinalActions } from '@/components/decision/FinalActions';
 import { StepIndicator } from '@/components/decision/StepIndicator';
+import { PreStartAcknowledgement } from '@/components/decision/PreStartAcknowledgement';
+import { CrisisResponseScreen } from '@/components/decision/CrisisResponseScreen';
+import { InappropriateContentScreen } from '@/components/decision/InappropriateContentScreen';
 import { computeResults } from '@/lib/scoring';
 import { fallbackSuggestions } from '@/lib/fallback-suggestions';
+import { checkSafety } from '@/lib/safety';
 import { emptyDecisionState, type DecisionState, type ScoreMap, type WeightMap } from '@/lib/types';
 
 interface ChatMessage {
@@ -20,16 +24,23 @@ interface ChatMessage {
   typing: boolean;
 }
 
+type Phase = 'ack' | 'chat' | 'crisis' | 'inappropriate';
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Thrown internally to unwind the async run() flow the instant a safety
+// check trips, from wherever it happens to be — cleaner than threading a
+// "should I stop?" return value through every awaited step.
+class SafetyStop extends Error {}
+
 export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const [phase, setPhase] = useState<Phase>('ack');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputArea, setInputArea] = useState<ReactNode>(null);
   const [step, setStep] = useState(1);
   const idRef = useRef(0);
-  const started = useRef(false);
   const S = useRef<DecisionState>(emptyDecisionState());
 
   function scrollSoon() {
@@ -79,6 +90,24 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
         })
       );
     });
+  }
+
+  // Checked after every free-text field (title, option A, option B,
+  // context) as it's collected — not just once at the end — so a warning
+  // sign surfaces the moment it's typed rather than after someone has
+  // gone on to describe more. Safety-critical: deterministic pattern
+  // matching in lib/safety.ts, not an AI call, so it can't fail open if a
+  // model call errors or times out.
+  function guardSafety(cumulativeText: string) {
+    const flag = checkSafety(cumulativeText);
+    if (flag === 'crisis') {
+      setPhase('crisis');
+      throw new SafetyStop();
+    }
+    if (flag === 'inappropriate') {
+      setPhase('inappropriate');
+      throw new SafetyStop();
+    }
   }
 
   async function fetchSuggestions(title: string, optA: string, optB: string, context: string) {
@@ -194,199 +223,226 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
 
   async function run() {
     setStep(1);
-    // --- decision title ---
-    await addPivot(
-      <>
-        Hi there. I&apos;m <em>Pivot</em> — a calm thinking partner for big decisions.
-      </>,
-      0
-    );
-    await addPivot(
-      'I’ll ask you a few simple questions, one at a time. No rush, no right answers, no judgement here.',
-      900
-    );
-    await addPivot(
-      <>
-        One thing before we start: we&apos;re going to focus on what matters to you{' '}
-        <em>right now</em> — in your life as it actually is today, not an ideal future version of
-        it. That&apos;s where the clarity lives.
-      </>,
-      1800
-    );
-    await addPivot(
-      <>
-        So — <em>what&apos;s the decision you&apos;re facing?</em>
-      </>,
-      2900
-    );
-    const title = await waitForInput<string>((resolve) => (
-      <TextInputStep placeholder="e.g. Should I change jobs?" onSubmit={resolve} />
-    ));
-    S.current.title = title;
-    addUser(title);
-
-    // --- option A ---
-    await addPivot(
-      <>
-        Got it — <em>&quot;{title}&quot;</em>. That sounds like a significant one.
-      </>,
-      300
-    );
-    await addPivot(
-      <>
-        Let&apos;s give your two options clear names. <em>What&apos;s option A?</em>
-      </>,
-      1200
-    );
-    const optA = await waitForInput<string>((resolve) => (
-      <TextInputStep placeholder="e.g. Stay in current role" onSubmit={resolve} />
-    ));
-    S.current.optA = optA;
-    addUser(optA);
-
-    // --- option B ---
-    await addPivot(
-      <>
-        And <em>what&apos;s option B?</em>
-      </>,
-      400
-    );
-    const optB = await waitForInput<string>((resolve) => (
-      <TextInputStep placeholder="e.g. Take the new job" onSubmit={resolve} />
-    ));
-    S.current.optB = optB;
-    addUser(optB);
-
-    // --- context ---
-    setStep(2);
-    await addPivot(
-      <>
-        &quot;<em>{optA}</em>&quot; vs &quot;<em>{optB}</em>&quot;. Before I suggest what to
-        consider, I&apos;d love to understand your situation.
-      </>,
-      400
-    );
-    await addPivot(
-      <>
-        In a sentence or two — <em>tell me a little about yourself and your life right now.</em>{' '}
-        Things like family situation, how long you&apos;ve been in your current role, other
-        commitments, what worries you most. The more you share, the more tailored my suggestions
-        will be.
-      </>,
-      1300
-    );
-    const context = await waitForInput<string>((resolve) => <ContextInputStep onSubmit={resolve} />);
-    S.current.context = context;
-    addUser(context || 'Keeping it private');
-
-    // --- suggestions ---
-    setStep(3);
-    await addPivot(
-      context
-        ? 'Thank you — that really helps me understand what matters for you specifically.'
-        : 'No problem at all — I’ll work with what I have.',
-      300
-    );
-    await addPivot('Let me think carefully about what actually matters here...', 1100);
-    await sleep(600);
-    const loadingId = addLoading('Personalising your suggestions...');
-    const suggestions = await fetchSuggestions(title, optA, optB, context);
-    S.current.suggestions = suggestions;
-    removeMessage(loadingId);
-    await addPivot(
-      'Here’s what I think matters for your specific situation. Tap to select the ones that resonate — remove any that don’t apply, and add your own if something’s missing.',
-      0
-    );
-    await sleep(800);
-    const crit = await waitForInput<string[]>((resolve) => (
-      <ChipsStep suggestions={suggestions} onSubmit={resolve} />
-    ));
-    S.current.crit = crit;
-    addUser(crit.join(', '));
-
-    // --- priorities, blind scoring, and review (repeats if they go back to adjust) ---
-    let pass = 0;
-    let wts: WeightMap = {};
-    let scA: ScoreMap = {};
-    let scB: ScoreMap = {};
-
-    while (true) {
-      const result = await collectPrioritiesAndScores(optA, optB, crit, pass > 0);
-      wts = result.wts;
-      scA = result.scA;
-      scB = result.scB;
-      pass += 1;
-
-      setStep(6);
+    try {
+      // --- decision title ---
       await addPivot(
-        "Here's an overview of your answers — take a moment to review before seeing your results. Does this feel right?",
-        500
+        <>
+          Hi there. I&apos;m <em>Pivot</em> — a calm thinking partner for big decisions.
+        </>,
+        0
       );
+      await addPivot(
+        'I’ll ask you a few simple questions, one at a time. No rush, no right answers, no judgement here.',
+        900
+      );
+      await addPivot(
+        <>
+          One thing before we start: we&apos;re going to focus on what matters to you{' '}
+          <em>right now</em> — in your life as it actually is today, not an ideal future version
+          of it. That&apos;s where the clarity lives.
+        </>,
+        1800
+      );
+      await addPivot(
+        <>
+          So — <em>what&apos;s the decision you&apos;re facing?</em>
+        </>,
+        2900
+      );
+      const title = await waitForInput<string>((resolve) => (
+        <TextInputStep placeholder="e.g. Should I change jobs?" onSubmit={resolve} />
+      ));
+      S.current.title = title;
+      addUser(title);
+      guardSafety(title);
+
+      // --- option A ---
+      await addPivot(
+        <>
+          Got it — <em>&quot;{title}&quot;</em>. That sounds like a significant one.
+        </>,
+        300
+      );
+      await addPivot(
+        <>
+          Let&apos;s give your two options clear names. <em>What&apos;s option A?</em>
+        </>,
+        1200
+      );
+      const optA = await waitForInput<string>((resolve) => (
+        <TextInputStep placeholder="e.g. Stay in current role" onSubmit={resolve} />
+      ));
+      S.current.optA = optA;
+      addUser(optA);
+      guardSafety(`${title} ${optA}`);
+
+      // --- option B ---
+      await addPivot(
+        <>
+          And <em>what&apos;s option B?</em>
+        </>,
+        400
+      );
+      const optB = await waitForInput<string>((resolve) => (
+        <TextInputStep placeholder="e.g. Take the new job" onSubmit={resolve} />
+      ));
+      S.current.optB = optB;
+      addUser(optB);
+      guardSafety(`${title} ${optA} ${optB}`);
+
+      // --- context ---
+      setStep(2);
+      await addPivot(
+        <>
+          &quot;<em>{optA}</em>&quot; vs &quot;<em>{optB}</em>&quot;. Before I suggest what to
+          consider, I&apos;d love to understand your situation.
+        </>,
+        400
+      );
+      await addPivot(
+        <>
+          In a sentence or two — <em>tell me a little about yourself and your life right now.</em>{' '}
+          Things like family situation, how long you&apos;ve been in your current role, other
+          commitments, what worries you most. The more you share, the more tailored my
+          suggestions will be.
+        </>,
+        1300
+      );
+      const context = await waitForInput<string>((resolve) => (
+        <ContextInputStep onSubmit={resolve} />
+      ));
+      S.current.context = context;
+      addUser(context || 'Keeping it private');
+      guardSafety(`${title} ${optA} ${optB} ${context}`);
+
+      // --- suggestions ---
+      setStep(3);
+      await addPivot(
+        context
+          ? 'Thank you — that really helps me understand what matters for you specifically.'
+          : 'No problem at all — I’ll work with what I have.',
+        300
+      );
+      await addPivot('Let me think carefully about what actually matters here...', 1100);
       await sleep(600);
-      const proceed = await waitForInput<boolean>((resolve) => (
-        <SummaryStep
+      const loadingId = addLoading('Personalising your suggestions...');
+      const suggestions = await fetchSuggestions(title, optA, optB, context);
+      S.current.suggestions = suggestions;
+      removeMessage(loadingId);
+      await addPivot(
+        'Here’s what I think matters for your specific situation. Tap to select the ones that resonate — remove any that don’t apply, and add your own if something’s missing.',
+        0
+      );
+      await sleep(800);
+      const crit = await waitForInput<string[]>((resolve) => (
+        <ChipsStep suggestions={suggestions} onSubmit={resolve} />
+      ));
+      S.current.crit = crit;
+      addUser(crit.join(', '));
+
+      // --- priorities, blind scoring, and review (repeats if they go back to adjust) ---
+      let pass = 0;
+      let wts: WeightMap = {};
+      let scA: ScoreMap = {};
+      let scB: ScoreMap = {};
+
+      while (true) {
+        const result = await collectPrioritiesAndScores(optA, optB, crit, pass > 0);
+        wts = result.wts;
+        scA = result.scA;
+        scB = result.scB;
+        pass += 1;
+
+        setStep(6);
+        await addPivot(
+          "Here's an overview of your answers — take a moment to review before seeing your results. Does this feel right?",
+          500
+        );
+        await sleep(600);
+        const proceed = await waitForInput<boolean>((resolve) => (
+          <SummaryStep
+            optA={optA}
+            optB={optB}
+            crit={crit}
+            wts={wts}
+            scA={scA}
+            scB={scB}
+            onBack={() => resolve(false)}
+            onContinue={() => resolve(true)}
+          />
+        ));
+        if (proceed) break;
+        addUser('Let me adjust a few things');
+      }
+
+      S.current.wts = wts;
+      S.current.scA = scA;
+      S.current.scB = scB;
+
+      // --- results ---
+      await addPivot('Both options scored. Let me put the full picture together for you now.', 400);
+      await addPivotInstant(
+        <ResultsView optA={optA} optB={optB} crit={crit} wts={wts} scA={scA} scB={scB} />,
+        1400
+      );
+
+      const result = computeResults(optA, optB, crit, wts, scA, scB);
+      await addPivot(result.closingMessage, 800);
+      await sleep(2000);
+
+      setInputArea(
+        <FinalActions
+          title={title}
           optA={optA}
           optB={optB}
+          context={context}
           crit={crit}
           wts={wts}
           scA={scA}
           scB={scB}
-          onBack={() => resolve(false)}
-          onContinue={() => resolve(true)}
+          scoreA={result.scoreA}
+          scoreB={result.scoreB}
+          winner={result.winner}
+          isAuthenticated={isAuthenticated}
+          onRestart={restart}
         />
-      ));
-      if (proceed) break;
-      addUser('Let me adjust a few things');
+      );
+    } catch (e) {
+      if (!(e instanceof SafetyStop)) throw e;
     }
-
-    S.current.wts = wts;
-    S.current.scA = scA;
-    S.current.scB = scB;
-
-    // --- results ---
-    await addPivot('Both options scored. Let me put the full picture together for you now.', 400);
-    await addPivotInstant(
-      <ResultsView optA={optA} optB={optB} crit={crit} wts={wts} scA={scA} scB={scB} />,
-      1400
-    );
-
-    const result = computeResults(optA, optB, crit, wts, scA, scB);
-    await addPivot(result.closingMessage, 800);
-    await sleep(2000);
-
-    setInputArea(
-      <FinalActions
-        title={title}
-        optA={optA}
-        optB={optB}
-        context={context}
-        crit={crit}
-        wts={wts}
-        scA={scA}
-        scB={scB}
-        scoreA={result.scoreA}
-        scoreB={result.scoreB}
-        winner={result.winner}
-        isAuthenticated={isAuthenticated}
-        onRestart={restart}
-      />
-    );
   }
 
-  function restart() {
+  function resetChatState() {
     S.current = emptyDecisionState();
+    idRef.current = 0;
     setMessages([]);
     setInputArea(null);
     setStep(1);
+  }
+
+  function restart() {
+    resetChatState();
+    setPhase('chat');
     run();
   }
 
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+  function beginFlow() {
+    resetChatState();
+    setPhase('chat');
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }
+
+  if (phase === 'ack') {
+    return <PreStartAcknowledgement onContinue={beginFlow} />;
+  }
+
+  if (phase === 'crisis') {
+    return <CrisisResponseScreen />;
+  }
+
+  if (phase === 'inappropriate') {
+    return <InappropriateContentScreen onTryAgain={restart} />;
+  }
 
   return (
     <>
