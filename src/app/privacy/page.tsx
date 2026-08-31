@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
 
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'privacy@pivot-app.example';
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'pivotdecisions@gmail.com';
 const LAST_UPDATED = 'August 2026';
 
 export default function PrivacyPage() {

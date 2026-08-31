@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'privacy@pivot-app.example';
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'pivotdecisions@gmail.com';
 
 export default function SiteFooter() {
   return (
