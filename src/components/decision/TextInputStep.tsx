@@ -56,7 +56,7 @@ export function ContextInputStep({ onSubmit }: { onSubmit: (value: string) => vo
       </div>
       <div className="send-row" style={{ marginTop: 6 }}>
         <button className="skip-btn" onClick={() => onSubmit('')}>
-          Skip — keep it private
+          Skip this step
         </button>
         <button className="send-btn" disabled={!value.trim()} onClick={() => onSubmit(value.trim())}>
           Continue
