@@ -15,6 +15,7 @@ import { InappropriateContentScreen } from '@/components/decision/InappropriateC
 import { computeResults } from '@/lib/scoring';
 import { fallbackSuggestions } from '@/lib/fallback-suggestions';
 import { checkSafety } from '@/lib/safety';
+import { hasVisitedBefore, markVisited } from '@/lib/first-visit';
 import { emptyDecisionState, type DecisionState, type ScoreMap, type WeightMap } from '@/lib/types';
 
 interface ChatMessage {
@@ -62,6 +63,17 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     const id = idRef.current++;
     setMessages((m) => [...m, { id, role: 'pivot', node, typing: false }]);
     scrollSoon();
+  }
+
+  // The staggered reveal (typing pause + increasing delays) is a nice first
+  // impression but grows annoying to someone who's seen it before — so
+  // returning visitors get the same messages shown instantly instead.
+  async function addIntro(node: ReactNode, delayMs: number, fastIntro: boolean) {
+    if (fastIntro) {
+      await addPivotInstant(node, 0);
+    } else {
+      await addPivot(node, delayMs);
+    }
   }
 
   function addUser(node: ReactNode) {
@@ -225,30 +237,36 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
     setStep(1);
     try {
       // --- decision title ---
-      await addPivot(
+      const fastIntro = hasVisitedBefore();
+      await addIntro(
         <>
           Hi there. I&apos;m <em>Pivot</em> — a calm thinking partner for big decisions.
         </>,
-        0
+        0,
+        fastIntro
       );
-      await addPivot(
+      await addIntro(
         'I’ll ask you a few simple questions, one at a time. No rush, no right answers, no judgement here.',
-        900
+        900,
+        fastIntro
       );
-      await addPivot(
+      await addIntro(
         <>
           One thing before we start: we&apos;re going to focus on what matters to you{' '}
           <em>right now</em> — in your life as it actually is today, not an ideal future version
           of it. That&apos;s where the clarity lives.
         </>,
-        1800
+        1800,
+        fastIntro
       );
-      await addPivot(
+      await addIntro(
         <>
           So — <em>what&apos;s the decision you&apos;re facing?</em>
         </>,
-        2900
+        2900,
+        fastIntro
       );
+      markVisited();
       const title = await waitForInput<string>((resolve) => (
         <TextInputStep placeholder="e.g. Should I change jobs?" onSubmit={resolve} />
       ));
