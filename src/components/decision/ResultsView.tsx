@@ -109,23 +109,11 @@ export function ResultsView({
       })}
 
       <div className="coaching-note">
-        <p className="lead">The numbers can inform — but they can&apos;t decide.</p>
         <p>
-          A decision matrix is a thinking tool, not a verdict. It helps you see what matters to
-          you and how your options compare — but it can&apos;t feel what you feel.
+          The numbers can inform — but they can&apos;t decide. Trust your own judgement alongside
+          these insights. If something still pulls at you that the scores don&apos;t capture,
+          that feeling deserves attention too.
         </p>
-        <p>
-          If something still pulls at you that the scores don&apos;t capture — a gut instinct, a
-          fear, an excitement you haven&apos;t fully named — that deserves attention too.
-          Sometimes the most important factor in a big decision is the one that&apos;s hardest to
-          put a number on.
-        </p>
-        <p>Sit with what this process has revealed. The clarity you&apos;re looking for might already be there.</p>
-      </div>
-
-      <div className="ai-disclaimer">
-        Remember: Pivot is a thinking tool, not a decision maker. Trust your own judgement
-        alongside these insights.
       </div>
     </div>
   );

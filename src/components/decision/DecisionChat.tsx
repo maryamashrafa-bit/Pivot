@@ -398,7 +398,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
         1400
       );
 
-      const result = computeResults(optA, optB, crit, wts, scA, scB);
+      const result = computeResults(optA, optB, crit, wts, scA, scB, scale);
       await addPivot(result.closingMessage, 800);
       await sleep(2000);
 
