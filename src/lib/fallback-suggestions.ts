@@ -2,6 +2,7 @@ export type Category =
   | 'family'
   | 'relationship'
   | 'career'
+  | 'relocation'
   | 'lifestyle'
   | 'financial'
   | 'health'
@@ -54,6 +55,20 @@ const FALLBACK_BANKS: Record<Category, string[]> = {
     'Whether the timing is right for both of you, not just one',
     'Who you can rely on if things get hard',
     'The vision you each have for the future together',
+  ],
+  relocation: [
+    'How the weather and climate there would actually suit you day to day',
+    'The quality of local schools compared to what your children have now',
+    'The real cost of living difference once housing and everyday costs are compared',
+    'The local business and career climate if you ever needed to change jobs',
+    'The tax environment and how it changes your actual take-home',
+    'Safety and crime rates in the specific areas you would be living in',
+    'The entertainment and social scene, and whether it fits the life you enjoy',
+    'How far you would be from the family who matter to you',
+    'Housing costs and what your money would actually buy there',
+    'Commute and transport links for the day-to-day of your new life',
+    'Access to healthcare and other services you currently rely on',
+    'The community and sense of belonging you would be building from scratch',
   ],
   lifestyle: [
     'How your values actually line up with this change',
@@ -148,7 +163,11 @@ const CATEGORY_KEYWORDS: Record<Exclude<Category, 'general'>, string[]> = {
     'invest', 'mortgage', 'loan', 'debt', 'savings', 'budget', 'financial',
     'afford',
   ],
-  lifestyle: ['move', 'moving', 'relocat', 'city', 'countryside', 'rural', 'village', 'travel', 'lifestyle'],
+  relocation: [
+    'move', 'moving', 'relocat', 'relocation', 'countryside', 'rural', 'village',
+    'city', 'cities', 'town',
+  ],
+  lifestyle: ['travel', 'lifestyle', 'downsiz', 'retire', 'retirement', 'minimalis'],
   career: [
     'job', 'career', 'work', 'promotion', 'salary', 'employer', 'resign',
     'quit', 'boss', 'coworker', 'nhs', 'gp', 'clinic', 'clinical', 'on-call', 'on call',
@@ -236,6 +255,13 @@ const CONTEXT_HOOKS: { test: RegExp; factor: string }[] = [
   { test: /countryside|rural|village/i, factor: 'Whether rural life matches the reality, not just the appeal' },
   { test: /community/i, factor: 'The community you\'d be leaving behind' },
   { test: /\d+\s?(years?|yrs)\s+(experience|in my role|in the role)/i, factor: 'What walking away from your years of experience in this role would mean' },
+  { test: /primary school/i, factor: 'Whether children already settled in primary school would adjust well to a new one' },
+  { test: /\d+\s?%\s*(more|higher|pay|salary|increase)/i, factor: "Whether the pay increase is enough to offset everything else you'd be giving up" },
+  { test: /works? remotely|remote work|location (doesn't|does not|won't) affect/i, factor: "Since your income isn't tied to location, what's actually pulling you towards the move" },
+  { test: /own (our|your|my) home|homeowners?/i, factor: 'What selling or renting out the home you own would actually involve' },
+  { test: /family nearby|near(by)? family|close to (my |our )?family/i, factor: 'Trading being near the family you described for whatever the move offers instead' },
+  { test: /ready for a change/i, factor: 'Whether ‘ready for a change’ points to this move specifically or to change in general' },
+  { test: /weather.*worr|worr.*weather|scottish weather/i, factor: 'Whether the weather worry is a small adjustment or a genuine dealbreaker' },
 ];
 
 function contextHooks(context: string, max = 7): string[] {

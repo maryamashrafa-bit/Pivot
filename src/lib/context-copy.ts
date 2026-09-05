@@ -13,6 +13,7 @@ const SCALE_BY_CATEGORY: Record<Category, ContextScale> = {
   relationship: 'big',
   financial: 'big',
   health: 'big',
+  relocation: 'medium',
   lifestyle: 'medium',
   education: 'medium',
   general: 'small',
