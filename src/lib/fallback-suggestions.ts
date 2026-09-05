@@ -177,7 +177,7 @@ function countKeywordHits(text: string, keywords: string[]): number {
 // the person actually titled their decision.
 const TITLE_WEIGHT = 3;
 
-function detectCategory(title: string, context: string): Category {
+export function detectCategory(title: string, context: string): Category {
   const t = title.toLowerCase();
   const c = context.toLowerCase();
   let best: Category = 'general';

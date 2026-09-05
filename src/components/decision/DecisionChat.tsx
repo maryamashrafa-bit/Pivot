@@ -16,6 +16,7 @@ import { computeResults } from '@/lib/scoring';
 import { fallbackSuggestions } from '@/lib/fallback-suggestions';
 import { checkSafety } from '@/lib/safety';
 import { hasVisitedBefore, markVisited } from '@/lib/first-visit';
+import { contextPlaceholder, contextPrompt, contextScale } from '@/lib/context-copy';
 import { emptyDecisionState, type DecisionState, type ScoreMap, type WeightMap } from '@/lib/types';
 
 interface ChatMessage {
@@ -310,6 +311,7 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
 
       // --- context ---
       setStep(2);
+      const scale = contextScale(title, optA, optB);
       await addPivot(
         <>
           &quot;<em>{optA}</em>&quot; vs &quot;<em>{optB}</em>&quot;. Before I suggest what to
@@ -317,17 +319,9 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
         </>,
         400
       );
-      await addPivot(
-        <>
-          In a sentence or two — <em>tell me a little about yourself and your life right now.</em>{' '}
-          Things like family situation, how long you&apos;ve been in your current role, other
-          commitments, what worries you most. The more you share, the more tailored my
-          suggestions will be.
-        </>,
-        1300
-      );
+      await addPivot(contextPrompt(scale), 1300);
       const context = await waitForInput<string>((resolve) => (
-        <ContextInputStep onSubmit={resolve} />
+        <ContextInputStep placeholder={contextPlaceholder(scale)} onSubmit={resolve} />
       ));
       S.current.context = context;
       addUser(context || 'Keeping it private');
