@@ -36,7 +36,13 @@ export function TextInputStep({
   );
 }
 
-export function ContextInputStep({ onSubmit }: { onSubmit: (value: string) => void }) {
+export function ContextInputStep({
+  onSubmit,
+  placeholder,
+}: {
+  onSubmit: (value: string) => void;
+  placeholder?: string;
+}) {
   const [value, setValue] = useState('');
 
   return (
@@ -45,7 +51,10 @@ export function ContextInputStep({ onSubmit }: { onSubmit: (value: string) => vo
         <textarea
           className="single-input"
           autoFocus
-          placeholder="e.g. I've been in my role for 10 years, I have young children, I run a side business, and I'm worried about losing work-life balance..."
+          placeholder={
+            placeholder ??
+            "e.g. I've been in my role for 10 years, I have young children, I run a side business, and I'm worried about losing work-life balance..."
+          }
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />

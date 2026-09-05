@@ -1,4 +1,5 @@
 import type { ScoreMap, WeightMap } from '@/lib/types';
+import type { ContextScale } from '@/lib/context-copy';
 
 export interface ScoringResult {
   scoreA: number;
@@ -23,7 +24,8 @@ export function computeResults(
   crit: string[],
   wts: WeightMap,
   scA: ScoreMap,
-  scB: ScoreMap
+  scB: ScoreMap,
+  scale: ContextScale = 'big'
 ): ScoringResult {
   const tw = crit.reduce((s, c) => s + (wts[c] ?? 5), 0) || 1;
   let sA = 0;
@@ -58,8 +60,21 @@ export function computeResults(
   const biggestGapHolder =
     biggest && (scA[biggest] ?? 5) > (scB[biggest] ?? 5) ? optA : optB;
 
+  // Small/everyday decisions (deciding whether to go for a run, what to
+  // watch tonight) don't warrant the same reflective, "sit with your
+  // feelings" tone as a career or family decision — that reads as
+  // absurdly heavy for low-stakes choices, so they get a light,
+  // score-and-go closing instead.
   let closingMessage: string;
-  if (diff < 0.3) {
+  if (scale === 'small') {
+    if (diff < 0.3) {
+      closingMessage = "It's genuinely close either way — you really can't go wrong! 😊";
+    } else if (diff < 1) {
+      closingMessage = `"${winner}" comes out ahead — enjoy! 😊`;
+    } else {
+      closingMessage = `"${winner}" comes out clearly ahead — go for it! 😊`;
+    }
+  } else if (diff < 0.3) {
     closingMessage =
       'The scores are very close — and that’s meaningful. It tells you both options genuinely serve your values right now. The decision comes down to your gut, your timing, and your appetite for change. Neither choice is wrong.';
   } else if (diff < 1) {
