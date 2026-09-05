@@ -3,7 +3,7 @@ import { fallbackSuggestions } from '@/lib/fallback-suggestions';
 
 function buildPrompt(title: string, optA: string, optB: string, context: string) {
   return [
-    'You are a thoughtful decision coach helping someone choose between two options. Work through the steps below privately, then output ONLY the final JSON array — no visible reasoning, no step labels, no commentary.',
+    'You are a wise, empathetic friend who has just listened carefully to everything this person has shared about a big decision in their life. Work through the steps below privately, then output ONLY the final JSON array — no visible reasoning, no step labels, no commentary.',
     '',
     `DECISION: "${title}"`,
     `OPTION A: "${optA}"`,
@@ -12,30 +12,45 @@ function buildPrompt(title: string, optA: string, optB: string, context: string)
       ? `PERSONAL CONTEXT (in their own words): "${context}"`
       : 'PERSONAL CONTEXT: none provided — work from the decision and options alone.',
     '',
-    "STEP 1 — Read the decision title, both options, and the personal context TOGETHER as one picture of this person's life. Don't treat them as separate, unrelated inputs.",
+    'STEP 1 — DEEP READING. Mandatory, before you generate a single suggestion. Read the decision title carefully. Read both options carefully. Read every word of the personal context, if any was given. From that reading, identify: the specific circumstances they described, the specific constraints they are under (money, time, location, health, obligations), the specific relationships involved (by the actual details given — a 3-year-old, a partner who works long hours, a VIP client — not generic labels), the specific emotions they expressed or implied (fear, guilt, excitement, grief, relief, resentment), and the specific practicalities they mentioned (logistics, timing, physical demands, day-to-day realities). Only generate suggestions that directly reflect what you actually read.',
     '',
     'STEP 2 — Classify the decision into exactly one category, judged from what it is actually about, not surface keywords: career, relationship, family, lifestyle, financial, health, education, or other. "Should I take the promotion or stay home with the baby" is a family decision wearing career clothing — classify by substance.',
     '',
-    'STEP 3 — Imagine you are a wise, empathetic friend who has just listened carefully to everything this person shared. What would YOU specifically suggest they consider — beyond the obvious? What unique factors emerge from THEIR specific situation that a generic list would miss? The test: could a factor have been generated without reading the personal context? If yes, it needs to be more specific and personal.',
+    'STEP 3 — THE WISE, EMPATHETIC FRIEND TEST. You are a wise, empathetic friend who has just listened carefully to everything this person has shared. You know their specific situation intimately. Now suggest the factors that genuinely matter for THIS decision — not a generic decision of this type. Ask yourself before each suggestion: would I have suggested this if I had NOT read their personal context? If yes — it is too generic. Replace it with something that could only have been suggested after reading their specific situation.',
     '',
-    'Category reference — draw from whichever fits this decision, but treat these as a starting point to make specific, not a list to copy verbatim:',
-    '  FAMILY (having/adopting a child, blending families, etc.): financial impact of a child, relationship with partner/co-parent, impact on existing children, emotional and mental readiness, support network, physical health and recovery, home and space needs, career flexibility needed, age gap between children, long-term family vision.',
-    '  CAREER (new job, promotion, quitting, career change): salary and benefits, work-life balance, career growth, commute, team and manager quality, job security, skill development, industry outlook.',
-    '  RELATIONSHIP (marriage, moving in together, breakup, long distance): emotional compatibility, shared life goals, communication patterns, family/social approval, financial entanglement, living arrangements, trust and history together.',
-    '  LIFESTYLE (relocating, major life change, big purchase): cost of living, proximity to people you love, community fit, climate/environment, day-to-day routine impact, access to what you value.',
-    '  FINANCIAL: immediate cost, long-term risk, income stability, opportunity cost, debt impact.',
-    '  HEALTH: physical risk/benefit, recovery time, quality-of-life impact, cost of treatment, long-term outlook.',
-    '  EDUCATION: cost and debt, career payoff, time commitment, personal fit, location/format.',
+    'Category depth reference — go beyond the obvious within whichever category fits. Treat these as dimensions to mine for specifics, not a list to copy verbatim:',
+    '  CAREER: identity as a professional, clinical/professional autonomy, peer relationships, sense of purpose, professional development, work culture, boundaries and on-call demands, income trajectory — as well as the standard salary, work-life balance, commute, job security.',
+    '  FAMILY: relationship dynamics with a partner/co-parent, emotional readiness, practical day-to-day logistics, financial sustainability (not just cost), impact on existing children specifically, support network in real terms, physical demands and recovery, long-term family vision.',
+    '  LIFESTYLE: values alignment, social connections and community, sense of belonging, practical adaptation to the change, financial implications, identity shift — as well as cost of living, commute, day-to-day routine.',
+    '  RELATIONSHIP: emotional compatibility, shared long-term goals, communication patterns, family/social approval, financial entanglement, living arrangements, trust and history together.',
+    '  FINANCIAL: immediate cost, long-term risk, income stability, opportunity cost, debt impact, peace of mind.',
+    '  HEALTH: physical risk/benefit, recovery time, quality-of-life impact, cost of treatment, long-term outlook, mental health impact.',
+    '  EDUCATION: cost and debt, career payoff, time commitment, personal fit, location/format, impact on current income and family life.',
+    '',
+    'STEP 4 — THE SPECIFICITY RULE. At least 8 of the 12 factors you produce MUST directly reference or respond to something the person actually wrote in their context — a detail, a name, an age, a number, a feeling, a constraint. Generic factors like "financial impact" or "emotional readiness" are only acceptable at all if the person specifically mentioned finances or emotions — and even then they must be rewritten to be specific to what was described, never left as the bare generic label.',
+    context
+      ? [
+          '  Generic (banned): "Financial impact" — Specific (required): "Impact on paying off your mortgage given the salary difference you described"',
+          '  Generic (banned): "Impact on children" — Specific (required): "How your 3-year-old will adapt to seeing less of you during the transition period" (using whatever detail THIS person actually gave)',
+          '  Generic (banned): "Career progression" — Specific (required): "Whether the qualification pathway they promised is genuinely supported or just verbally promised" (using whatever detail THIS person actually gave)',
+        ].join('\n')
+      : '  (No personal context was given for this decision, so this rule cannot apply — draw the fullest, most concrete factors you can from the decision, options, and category depth reference instead.)',
+    '',
+    'STEP 5 — EMOTIONAL AND PRACTICAL BALANCE. For personal and family decisions especially, people are not just weighing logistics — they are weighing identity, relationships, values, and fears. Make sure both dimensions are represented: practical factors (money, logistics, time, health) AND emotional/relational ones (identity, fear of the unknown, sense of purpose, self-worth, relationships). Neither should be missing.',
+    '',
+    'STEP 6 — DEPTH OF LANGUAGE. Suggestions must feel weighty and considered, matching the weight of a big life decision — never like a generic checklist item.',
+    '  Too simplistic: "Work-life balance" — Better: "Whether the on-call commitment every alternate week is sustainable alongside your young family long term" (adapted to what THIS person described)',
+    '  Too simplistic: "Job satisfaction" — Better: "Whether a structured 9-5 environment will still feel fulfilling after years of the variety and autonomy you described" (adapted to what THIS person described)',
     '',
     context
-      ? 'Generate exactly 12 factors (2-6 words each). The first 4-5 may be solid, standard factors for this type of decision. But AT LEAST 6-7 of the 12 must be genuinely specific to what THIS person actually told you — something a generic list for this decision type would never include. If they mentioned a toddler, don\'t write "family impact" — write something like "age gap impact on your toddler specifically". If they mentioned financial pressure, don\'t write "financial impact" — reflect the actual pressure they described, in their terms.'
-      : 'No personal context was given, so generate exactly 12 factors (2-6 words each) drawn from the decision, options, and category above.',
+      ? 'Generate exactly 12 factors. Each should read as a specific, complete thought — long enough to carry real meaning (a short clause or sentence, not just 2-3 words), short enough to read at a glance. Bare one-or-two-word labels are banned outright.'
+      : 'No personal context was given, so generate exactly 12 solid, category-appropriate factors drawn from the decision, options, and category depth reference above — still avoid bare one-or-two-word labels; make each one a specific, complete thought.',
     '',
     'CRITICAL RULES — every one is mandatory:',
     `1. Every factor must be something a person could genuinely score DIFFERENTLY for "${optA}" versus "${optB}". If it would score the same for both, drop it.`,
     '2. Do NOT include career, job, salary, or work-related factors if this is a family, relationship, health, lifestyle, or education decision — UNLESS the person explicitly brought up their job, work, or work-related money in their own context. A decision about having another baby does not need "career growth" unless they raised it themselves.',
-    '3. Every factor must be specific enough to feel personally meaningful when scored, not a bare, one-size-fits-all label. "Support network" alone is too generic; "Support network once the baby arrives" is specific and real. Filler like "overall fit", "long-term happiness", or "personal readiness" with nothing tying it to their actual situation is banned.',
-    '4. Keep each factor to 2-6 words — short enough to read as a chip, specific enough to mean something.',
+    '3. No filler. "Overall fit", "long-term happiness", "personal readiness", or any other phrase with nothing tying it to this person\'s actual situation is banned.',
+    '4. Before finalizing, count how many of your 12 factors directly reference something specific from the context. If it is fewer than 8, rewrite the weakest, most generic ones until it is at least 8.',
     '',
     'Return ONLY a valid JSON array of exactly 12 strings. No explanation, no markdown, no backticks.',
   ].join('\n');
@@ -70,7 +85,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 700,
+        max_tokens: 1600,
         messages: [{ role: 'user', content: buildPrompt(title, optA, optB, context) }],
       }),
     });

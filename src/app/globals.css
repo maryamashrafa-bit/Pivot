@@ -123,7 +123,7 @@ textarea.single-input{resize:none;height:100px;line-height:1.6;}
 .chips-counter{font-size:var(--fs-xs);color:var(--text-muted);margin-top:10px;}
 .chips-counter.ready{color:var(--green);font-weight:500;}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem;}
-.chip{background:#fff;border:1px solid #d1d5db;border-radius:20px;padding:9px 15px;font-size:var(--fs-xs);color:var(--text-secondary);cursor:pointer;transition:all .15s;user-select:none;}
+.chip{background:#fff;border:1px solid #d1d5db;border-radius:14px;padding:9px 15px;font-size:var(--fs-xs);color:var(--text-secondary);cursor:pointer;transition:all .15s;user-select:none;max-width:360px;line-height:1.45;text-align:left;}
 .chip:hover{background:var(--green-tint);color:#1a5c35;border-color:var(--green-border);}
 .chip.sel{background:var(--green-tint);color:#1a5c35;border-color:var(--green);}
 .done-chip{background:var(--green);color:#fff;border:none;border-radius:20px;padding:10px 18px;font-size:var(--fs-xs);font-weight:500;cursor:pointer;margin-top:10px;display:block;font-family:inherit;min-height:44px;}
