@@ -2,6 +2,11 @@ export type Category =
   | 'family'
   | 'relationship'
   | 'career'
+  | 'business'
+  | 'home'
+  | 'relocation'
+  | 'retirement'
+  | 'caregiving'
   | 'lifestyle'
   | 'financial'
   | 'health'
@@ -54,6 +59,76 @@ const FALLBACK_BANKS: Record<Category, string[]> = {
     'Whether the timing is right for both of you, not just one',
     'Who you can rely on if things get hard',
     'The vision you each have for the future together',
+  ],
+  business: [
+    'Whether your savings runway is enough to cover the gap before income steadies',
+    'The realistic market demand for what you would be offering',
+    'How your own skills and experience actually match what the business needs',
+    'The time commitment this would take from the rest of your life',
+    'The impact on your family while you get things off the ground',
+    'Whether your motivation would survive the harder, less glamorous months',
+    'What support and mentorship you would actually have around you',
+    'The regulatory and legal groundwork you would need to get right',
+    'How your fixed costs hold up without a steady salary',
+    'The security you would be walking away from, honestly weighed',
+    'Whether this is the right window in your life to take the risk',
+    'How you would know if it was time to stop and go back',
+  ],
+  home: [
+    'Whether the mortgage stays comfortable if your circumstances changed',
+    'How the location and commute would actually shape your week',
+    'The school catchment area, if that matters for your family',
+    'Whether the size suits not just now but where your family is headed',
+    'The condition of the property and what renovation would really cost',
+    'Whether the neighbourhood and community feel like somewhere you would stay',
+    'Transport links for the day-to-day of living there',
+    'Whether this is a sound investment, not just a nice place to live',
+    'How close it keeps you to the family who matter to you',
+    'What you would be giving up financially to make this stretch',
+    'How settled you would feel putting real roots down here',
+    'Whether this still works if only one income had to carry it',
+  ],
+  retirement: [
+    'Whether your pension and savings genuinely support this timing',
+    'Your health and energy levels now, not just on paper',
+    'What would give you a sense of purpose once work stops',
+    'How this changes day-to-day life with the people around you',
+    'What you would actually do with the time you would be gaining',
+    'Whether a phased or part-time step down suits you better than stopping outright',
+    'What kind of legacy or contribution still matters to you',
+    'The travel or lifestyle goals you have been waiting for',
+    'Whether stepping back now costs you financially in the long run',
+    'How ready you feel to let go of your professional identity',
+    'Whether the timing fits your partner\'s plans as much as your own',
+    'What you would miss most about work once it is gone',
+  ],
+  caregiving: [
+    'Whether you have the physical and emotional capacity for this right now',
+    'The financial implications of the care this would involve',
+    'The impact on your own household while you take this on',
+    'The quality of professional care available as an alternative',
+    'How geographical distance affects what is realistically possible',
+    'The relationship dynamics this would bring back into daily life',
+    'Whether this is sustainable in the long run, not just right now',
+    'What professional support could genuinely lighten the load',
+    'How your own children would be affected by the change at home',
+    'Whether the space and set-up at home can actually accommodate this',
+    'What happens if things got harder than they are today',
+    'Whether you are the right person to carry this, or if it should be shared',
+  ],
+  relocation: [
+    'How the weather and climate there would actually suit you day to day',
+    'The quality of local schools compared to what your children have now',
+    'The real cost of living difference once housing and everyday costs are compared',
+    'The local business and career climate if you ever needed to change jobs',
+    'The tax environment and how it changes your actual take-home',
+    'Safety and crime rates in the specific areas you would be living in',
+    'The entertainment and social scene, and whether it fits the life you enjoy',
+    'How far you would be from the family who matter to you',
+    'Housing costs and what your money would actually buy there',
+    'Commute and transport links for the day-to-day of your new life',
+    'Access to healthcare and other services you currently rely on',
+    'The community and sense of belonging you would be building from scratch',
   ],
   lifestyle: [
     'How your values actually line up with this change',
@@ -111,19 +186,24 @@ const FALLBACK_BANKS: Record<Category, string[]> = {
     'How flexible the schedule really is',
     'What support would be available to you while studying',
   ],
+  // Nothing else matched, which in practice usually means this is a
+  // small, everyday decision rather than a life-defining one — so unlike
+  // every other bank, these stay deliberately light and low-stakes
+  // (scale awareness applies to the fallback too, not just the live
+  // prompt).
   general: [
-    'The financial impact once you add up the full picture',
-    'The realistic time commitment involved',
-    'The emotional weight of this, not just the logistics',
-    'The impact on the people closest to you',
-    'Whether this pays off in the long run or just short term',
-    'How reversible this is if it doesn\'t work out',
-    'The effort it would genuinely take to make this work',
-    'Whether this aligns with what actually matters to you',
-    'The risk involved if things don\'t go as planned',
-    'How your daily routine would actually change',
-    'The support you would realistically have around you',
-    'How ready you honestly feel for this right now',
+    'How much energy you actually have for this right now',
+    'Which one you would genuinely enjoy more',
+    'How you will feel afterwards, not just in the moment',
+    'What else you have got on today',
+    'How much time this realistically takes',
+    'Whether this fits your mood right now',
+    'The effort involved versus how much you want it',
+    'Whether you would regret skipping it',
+    'How it affects the rest of your evening',
+    'What you actually feel like doing, underneath the shoulds',
+    'Whether this is the better choice for tomorrow-you',
+    'How simple this really needs to be',
   ],
 };
 
@@ -148,7 +228,25 @@ const CATEGORY_KEYWORDS: Record<Exclude<Category, 'general'>, string[]> = {
     'invest', 'mortgage', 'loan', 'debt', 'savings', 'budget', 'financial',
     'afford',
   ],
-  lifestyle: ['move', 'moving', 'relocat', 'city', 'countryside', 'rural', 'village', 'travel', 'lifestyle'],
+  relocation: [
+    'move', 'moving', 'relocat', 'relocation', 'countryside', 'rural', 'village',
+    'city', 'cities', 'town',
+  ],
+  lifestyle: ['travel', 'lifestyle', 'downsiz', 'minimalis'],
+  business: [
+    'business', 'self-employ', 'self employ', 'freelanc', 'startup', 'entrepreneur',
+    'go independent', 'my own company',
+  ],
+  home: [
+    'buy a house', 'buying a house', 'buy a home', 'buying a home', 'house purchase',
+    'first-time buyer', 'school catchment', 'catchment area', 'homeowner', 'mortgage',
+  ],
+  retirement: ['retire', 'pension'],
+  caregiving: [
+    'elderly', 'care home', 'nursing home', 'caring for', 'ageing parent', 'aging parent',
+    'had a fall', 'assisted living', 'live with us', 'living with us',
+    'my mother', 'my father', 'my mum', 'my dad',
+  ],
   career: [
     'job', 'career', 'work', 'promotion', 'salary', 'employer', 'resign',
     'quit', 'boss', 'coworker', 'nhs', 'gp', 'clinic', 'clinical', 'on-call', 'on call',
@@ -236,6 +334,20 @@ const CONTEXT_HOOKS: { test: RegExp; factor: string }[] = [
   { test: /countryside|rural|village/i, factor: 'Whether rural life matches the reality, not just the appeal' },
   { test: /community/i, factor: 'The community you\'d be leaving behind' },
   { test: /\d+\s?(years?|yrs)\s+(experience|in my role|in the role)/i, factor: 'What walking away from your years of experience in this role would mean' },
+  { test: /primary school/i, factor: 'Whether children already settled in primary school would adjust well to a new one' },
+  { test: /\d+\s?%\s*(more|higher|pay|salary|increase)/i, factor: "Whether the pay increase is enough to offset everything else you'd be giving up" },
+  { test: /works? remotely|remote work|location (doesn't|does not|won't) affect/i, factor: "Since your income isn't tied to location, what's actually pulling you towards the move" },
+  { test: /own (our|your|my) home|homeowners?/i, factor: 'What selling or renting out the home you own would actually involve' },
+  { test: /family nearby|near(by)? family|close to (my |our )?family/i, factor: 'Trading being near the family you described for whatever the move offers instead' },
+  { test: /ready for a change/i, factor: 'Whether ‘ready for a change’ points to this move specifically or to change in general' },
+  { test: /weather.*worr|worr.*weather|scottish weather/i, factor: 'Whether the weather worry is a small adjustment or a genuine dealbreaker' },
+  { test: /\b4[- ]year[- ]old|\bfour[- ]year[- ]old/i, factor: 'How your 4-year-old would experience this change' },
+  { test: /works? part[- ]time|part[- ]time job/i, factor: 'How relying more on one income while your partner works part-time would feel' },
+  { test: /go(ing)? independent|self-employ|freelanc|start(ing)? (my|a|your) own (business|company)/i, factor: 'Whether going independent is worth trading steady income for' },
+  { test: /\b\d+\s?(hours?|hrs)\s+away/i, factor: 'The realistic toll of being that far away if something urgent came up' },
+  { test: /had a fall/i, factor: 'How serious the fall was, and whether it could happen again' },
+  { test: /teenagers?/i, factor: 'How your teenagers would feel about the change at home' },
+  { test: /reservations? about (the )?space/i, factor: "Your partner's reservations about space, named honestly rather than glossed over" },
 ];
 
 function contextHooks(context: string, max = 7): string[] {
