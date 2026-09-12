@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, type ReactNode } from 'react';
+import { track } from '@vercel/analytics';
 import { TextInputStep, ContextInputStep } from '@/components/decision/TextInputStep';
 import { ChipsStep } from '@/components/decision/ChipsStep';
 import { WeightsStep } from '@/components/decision/WeightsStep';
@@ -397,6 +398,10 @@ export default function DecisionChat({ isAuthenticated }: { isAuthenticated: boo
         <ResultsView optA={optA} optB={optB} crit={crit} wts={wts} scA={scA} scB={scB} />,
         1400
       );
+      // The results screen has no URL of its own — it renders inline on
+      // /decision/new — so a page-view count can't tell us how many
+      // people actually reach it. This custom event is the only signal.
+      track('decision_completed');
 
       const result = computeResults(optA, optB, crit, wts, scA, scB, scale);
       await addPivot(result.closingMessage, 800);
